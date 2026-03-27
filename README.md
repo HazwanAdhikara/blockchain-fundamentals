@@ -2,6 +2,7 @@
 |---|---|
 |Hazwan Adhikara Nasution|5027231017|
 |Malvin Putra Rismahardian|5027231048|
+|Hafiz Akmaldi Santosa|5027221061|
 
 # Blockchain Fundamentals - Python Implementation
 
@@ -267,6 +268,45 @@ GET http://127.0.0.1:5001/chain
 ```
 
 <img src="./img/get-chain.png">
+
+### 6. Signature Validation
+
+```
+POST http://127.0.0.1:5001/transaksi
+Body (JSON):
+{
+  "receiver": "Khapes",
+  "amount": 67.0
+}
+```
+<img src="./img/tambah-transaksi 1.png">
+
+```
+POST http://127.0.0.1:5001/transaksi/terima
+Body (JSON):
+{
+  "sender": "Hazwan",
+  "receiver": "Khapes",
+  "amount": 10,
+  "signature": "signature_palsu"
+}
+```
+
+<img src="./img/timpa-transaksi.png">
+
+### 7. Node Synchronization
+
+node 1 (Hazwan)
+
+<img src="./img/node 1.png">
+
+node 2 (Khapes)
+
+<img src="./img/node 2.png">
+
+node 3 (Malvin)
+
+<img src="./img/node 3.png">
 
 ---
 
