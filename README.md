@@ -1,5 +1,10 @@
 # Blockchain Fundamentals - Python Implementation
 
+|Nama|NRP|
+|---|---|
+|Hazwan Adhikara Nasution|5027231017|
+|Malvin Putra Rismahardian|5027231048|
+
 A simple blockchain implementation with Flask REST API, digital signatures, Proof of Work mining, and multi-node synchronization.
 
 <!-- **Group Members:** Hazwan, Khapes, Malvin (INI DIBUAT TABEL AJA NANTI + NRP) -->
