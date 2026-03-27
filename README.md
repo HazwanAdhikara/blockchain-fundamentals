@@ -97,9 +97,62 @@ def replace_chain(self, new_chain_data):
 
 **`node.py`** - Flask REST API server
 
-- Multi-node network with peer broadcasting
-- Automatic chain synchronization
-- Transaction mempool management
+### 1. Manajemen Jaringan & Peers
+Kode ini secara eksplisit mendefinisikan daftar node yang ada dalam jaringan.
+
+```python
+ALL_NODES = {
+    "Hazwan": "http://127.0.0.1:5001",
+    "Khapes": "http://127.0.0.1:5002",
+    "Malvin": "http://127.0.0.1:5003",
+    "Messi": "http://127.0.0.1:5004",
+}
+PEERS = {name: url for name, url in ALL_NODES.items() if name != NODE_NAME}
+```
+* **Penjelasan**: Setiap node mengenali tetangganya (*peers*) melalui alamat IP dan port. 
+* **Fungsi**: Variabel `PEERS` menyaring daftar agar node tidak mengirim pesan ke dirinya sendiri, memastikan komunikasi hanya terjadi ke node luar.
+
+---
+
+### 2. Mekanisme Broadcast (Penyebaran Data)
+Agar seluruh jaringan memiliki data yang sama, node harus menyebarkan informasi setiap kali ada perubahan.
+
+```python
+def broadcast(endpoint, payload):
+    for name, url in PEERS.items():
+        try:
+            requests.post(url + endpoint, json=payload, timeout=3)
+```
+* **Alur Kerja**: Saat kamu membuat transaksi atau menambang blok di satu node, fungsi `broadcast` akan mengirimkan data tersebut ke semua node lain secara otomatis.
+* **Keandalan**: Terdapat blok `try-except` untuk memastikan jika satu node mati, node lainnya tetap bisa menerima data tanpa menghentikan sistem.
+
+---
+
+### 3. Sinkronisasi & Konsensus Jaringan
+Ini adalah bagian paling krusial untuk menjaga integritas data antar node.
+
+```python
+def sinkronisasi():
+    for name, url in PEERS.items():
+        response = requests.get(url + "/chain", timeout=3)
+        data = response.json()
+        ok, msg = bc.replace_chain(data["chain"])
+```
+* **Longest Chain Rule**: Fungsi `sinkronisasi` secara aktif meminta data dari node lain dan membandingkannya. 
+* **Fungsi**: Jika node lain memiliki rantai yang lebih panjang dan valid (setelah diverifikasi oleh `blockchain.py`), node lokal akan mengganti datanya agar sama dengan mayoritas jaringan.
+
+---
+
+### 4. REST API Endpoints
+Node menyediakan beberapa pintu (endpoints) agar kita bisa berinteraksi menggunakan Postman atau Browser:
+
+* **`POST /transaksi`**: Membuat transaksi baru, menandatanganinya secara digital, dan menyebarkannya ke jaringan.
+* **`POST /mine`**: Memulai proses Proof of Work untuk membungkus transaksi menjadi blok dan menyebarkan blok baru tersebut.
+* **`GET /chain`**: Melihat seluruh isi blockchain yang tersimpan di node tersebut.
+* **`GET /pending`**: Melihat daftar transaksi yang sedang mengantri untuk ditambang.
+
+---
+
 
 ---
 
