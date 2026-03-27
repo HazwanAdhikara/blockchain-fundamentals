@@ -28,9 +28,72 @@ A simple blockchain implementation with Flask REST API, digital signatures, Proo
 
 **`blockchain.py`** - Core blockchain logic
 
-- `Transaction` class - Handle transactions with digital signatures
-- `Block` class - Block structure with PoW mining
-- `Blockchain` class - Chain management and validation
+### 1. Sistem Keamanan & Digital Signature
+Kode ini menggunakan `hashlib` untuk fungsi SHA-256. Setiap pengguna memiliki "kunci" unik yang tersimpan dalam `PRIVATE_KEYS`.
+
+```python
+def sign(self, private_key):
+    self.signature = sha256(self._message() + private_key)
+
+def is_valid(self):
+    # ... pengecekan sender & receiver ...
+    expected_signature = sha256(self._message() + PRIVATE_KEYS[self.sender])
+    return expected_signature == self.signature
+```
+* **Penjelasan**: Fungsi `sign` membuat sidik jari digital unik untuk setiap transaksi. 
+* **Keamanan**: Fungsi `is_valid` memastikan bahwa data transaksi (pengirim, penerima, jumlah) tidak diubah oleh siapa pun. Jika satu karakter saja berubah, hash yang dihasilkan tidak akan cocok dengan `signature`, dan transaksi akan ditolak.
+
+---
+
+### 2. Mekanisme Proof of Work (Mining)
+Di dalam class `Block`, terdapat logika untuk "menambang" blok baru.
+
+```python
+def mine(self, difficulty):
+    target = "0" * difficulty
+    while not self.hash or not self.hash.startswith(target):
+        self.nonce += 1
+        self.hash = self.calculate_hash()
+```
+* **Penjelasan**: Penambang harus mencari nilai `nonce` yang tepat sehingga hash blok tersebut dimulai dengan sejumlah nol sesuai tingkat kesulitan (`difficulty`). 
+* **Tujuan**: Ini mencegah serangan *spamming* atau perubahan data masal karena setiap penambahan blok membutuhkan tenaga komputasi nyata.
+
+---
+
+### 3. Struktur Rantai & Genesis Block
+Class `Blockchain` mengatur urutan blok dan memberikan hadiah bagi penambang.
+
+```python
+def _genesis_block(self):
+    genesis = Block(0, [], "0" * 16, nonce=0)
+    genesis.hash = genesis.calculate_hash()
+    return genesis
+
+def mine_pending(self, miner_name):
+    # ...
+    reward_tx = Transaction("SYSTEM", miner_name, self.MINING_REWARD)
+    self.pending_transactions.append(reward_tx)
+    # ...
+```
+* **Genesis Block**: Blok nomor #0 yang menjadi pondasi awal seluruh rantai.
+* **Mining Reward**: Setiap kali penambang berhasil membukukan transaksi ke dalam blok, sistem secara otomatis memberikan hadiah sebesar **5 koin** melalui transaksi spesial dari `SYSTEM`.
+
+---
+
+### 4. Konsensus (Replace Chain)
+Fungsi ini adalah cara blockchain menjaga kesepakatan antar node di jaringan.
+
+```python
+def replace_chain(self, new_chain_data):
+    if len(new_chain_data) <= len(self.chain):
+        return False, "Chain baru tidak lebih panjang"
+    # ... proses validasi chain baru ...
+```
+* **Penjelasan**: Mengikuti aturan **Longest Chain Rule**. Jika ada node lain yang memiliki rantai lebih panjang, node lokal akan memverifikasi seluruh integritas rantai tersebut (cek hash, cek link `previous_hash`, cek semua signature). Jika valid, node akan mengganti rantai lamanya dengan yang baru.
+
+---
+
+
 
 **`node.py`** - Flask REST API server
 
