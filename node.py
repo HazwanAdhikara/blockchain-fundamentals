@@ -8,7 +8,7 @@ if len(sys.argv) != 3:
     print("Contoh: python node.py Messi 5004")
     sys.exit(1)
 
-NODE_NAME = sys.argv[1]
+NODE_NAME = sys.argv[1].capitalize()
 NODE_PORT = int(sys.argv[2])
 
 ALL_NODES = {

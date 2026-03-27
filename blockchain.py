@@ -33,6 +33,9 @@ class Transaction:
         if self.sender not in PRIVATE_KEYS:
             return False
         
+        if self.receiver not in PRIVATE_KEYS:
+            return False
+        
         expected_signature = sha256(self._message() + PRIVATE_KEYS[self.sender])
         return expected_signature == self.signature
 
@@ -101,7 +104,7 @@ class Blockchain:
 
     def add_transaction(self, transaction):
         if not transaction.is_valid():
-            return False, f"Transaksi tidak valid dari {transaction.sender}"
+            return False, f"Transaksi tidak valid ke {transaction.receiver}"
         
         self.pending_transactions.append(transaction)
         return True, f"Transaksi dari {transaction.sender} ke {transaction.receiver} sebesar {transaction.amount} berhasil ditambahkan"
